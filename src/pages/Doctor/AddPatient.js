@@ -1,4 +1,3 @@
-// src/pages/AddPatient.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -24,7 +23,7 @@ const AddPatient = () => {
     e.preventDefault();
     try {
       const authUser = localStorage.getItem("authUser");
-      const token = authUser ? JSON.parse(authUser).token : null; // extract token
+      const token = authUser ? JSON.parse(authUser).token : null; 
 
       const res = await fetch("http://localhost:5000/doctor/addPatient", {
         method: "POST",

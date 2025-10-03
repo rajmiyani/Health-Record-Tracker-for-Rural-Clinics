@@ -80,7 +80,7 @@ const PatientLayout = ({ children }) => {
             <Nav>
               <Nav.Link
                 as={Link}
-                to="/patients/guidelines"
+                to="/patients/visitor-gidelines"
                 className="text-dark fw-semibold"
               >
                 Visitor Guidelines +
@@ -333,7 +333,7 @@ const PatientLayout = ({ children }) => {
           }
           .navbar-nav .nav-link:hover {
             background-color: rgba(40,167,69,0.1);
-            color: #28a745 !important;
+            color: black !important;
           }
         `}</style>
       </footer>

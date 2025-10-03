@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { registerPatient } from "../../services/api";   // ✅ fixed import
+import { registerPatient } from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
@@ -44,7 +44,6 @@ export default function PatientRegister() {
     try {
       setLoading(true);
 
-      // ✅ Map frontend fields → backend expects { name, email, phone, password }
       const payload = {
         name: `${form.firstName} ${form.lastName}`,
         email: form.email,

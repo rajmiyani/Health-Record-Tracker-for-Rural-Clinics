@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Button } from "react-bootstrap";
+import { Card, Button, Modal } from "react-bootstrap";
 import {
     FaPlay,
     FaHeartbeat,
@@ -14,8 +14,12 @@ import {
     FaBed,
 } from "react-icons/fa";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { useState } from "react";
 
 const Dashboard = () => {
+
+    const [showVideo, setShowVideo] = useState(false);
+
     const specialties = [
         { icon: <FaHeartbeat />, title: "Cardiology" },
         { icon: <FaUserMd />, title: "Cardiac Surgery" },
@@ -32,6 +36,10 @@ const Dashboard = () => {
         { icon: <FaHospital />, number: "15+", text: "Modern Room" },
         { icon: <FaBed />, number: "100", text: "Bedded Hospital" },
     ];
+
+    const handleClick = () => {
+        window.open("https://youtu.be/74DWwSxsVSs?si=_tRu_SLDD6lOz0BJ", "_blank");
+    };
 
     return (
         <>
@@ -82,19 +90,46 @@ const Dashboard = () => {
                                         variant="light"
                                         className="rounded-circle shadow me-2"
                                         style={{ width: "55px", height: "55px" }}
+                                        onClick={() => setShowVideo(true)}
                                     >
                                         <FaPlay className="text-success" />
                                     </Button>
                                     <span className="fw-semibold text-white">Watch Video</span>
                                 </div>
                             </div>
+
+                            {/* Video Modal */}
+                            {/* Video Modal */}
+                            <Modal
+                                show={showVideo}
+                                onHide={() => setShowVideo(false)}
+                                centered
+                                size="lg"
+                            >
+                                <Modal.Header closeButton className="border-0">
+                                    <Modal.Title className="fw-bold text-success">
+                                        Hospital Intro Video
+                                    </Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body className="p-3">
+                                    <div className="ratio ratio-16x9">
+                                        <iframe
+                                            src="https://www.youtube.com/embed/74DWwSxsVSs?autoplay=1"
+                                            title="Hospital Intro Video"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            style={{ borderRadius: "10px" }}
+                                        ></iframe>
+                                    </div>
+                                </Modal.Body>
+                            </Modal>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* Specialties Section */}
-            <section className="py-5" style={{backgroundColor: "rgb(232, 245, 233)"}}>
+            <section className="py-5" style={{ backgroundColor: "rgb(232, 245, 233)" }}>
                 <div className="container">
                     <div className="text-center mb-5">
                         <h6 className="text-uppercase text-muted fw-bold">What We Do</h6>
@@ -192,7 +227,7 @@ const Dashboard = () => {
             </section>
 
             {/* Patients Experience Section */}
-            <section className="py-5" style={{backgroundColor: "rgb(232, 245, 233)"}}>
+            <section className="py-5" style={{ backgroundColor: "rgb(232, 245, 233)" }}>
                 <div className="container">
                     <div className="text-center mb-5">
                         <h2 className="fw-bold" style={{ color: "#28a745" }}>

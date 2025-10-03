@@ -89,9 +89,11 @@ const ViewRecords = () => {
             if (editData) {
                 if (modalType === "appointment") {
                     url = `/doctor/updateAppointment/${id}/${editData._id}`;
+                    method = "PUT";
                 }
                 if (modalType === "prescription") {
                     url = `/doctor/updatePrescription/${id}/${editData._id}`;
+                    method = "PUT";
                 }
             }
 

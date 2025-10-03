@@ -3,6 +3,8 @@ import { Modal, Button, Table, Form, InputGroup, Row, Col } from "react-bootstra
 import { FaCalendarAlt, FaUser, FaPhone } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify"; // ✅ Toastify
+import "react-toastify/dist/ReactToastify.css";
 
 const DoctorAppointments = () => {
   const [search, setSearch] = useState("");
@@ -12,15 +14,34 @@ const DoctorAppointments = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [appointments, setAppointments] = useState([]);
 
+  // controlled form state for edit modal
+  const [formData, setFormData] = useState({
+    date: "",
+    time: "",
+    reason: "",
+    status: "Scheduled",
+  });
+
   const navigate = useNavigate();
 
-  // Fetch all appointments
+  // ✅ Fetch all appointments
   const fetchAppointments = async () => {
     try {
       const res = await axios.get("http://localhost:5000/patient/getAppointments");
-      setAppointments(res.data || []);
+      const updatedAppointments = res.data.map((appt) => {
+        if (appt.status === "Scheduled") {
+          const apptDate = new Date(appt.date);
+          const today = new Date();
+          if (apptDate < today) {
+            appt.status = "Completed"; // auto-mark past scheduled as completed
+          }
+        }
+        return appt;
+      });
+      setAppointments(updatedAppointments || []);
     } catch (err) {
       console.error("Error fetching appointments:", err);
+      toast.error("Failed to fetch appointments");
     }
   };
 
@@ -28,51 +49,70 @@ const DoctorAppointments = () => {
     fetchAppointments();
   }, []);
 
-  // Update appointment
+  // ✅ handle modal open
+  const handleModalOpen = (appt, type) => {
+    setSelectedAppointment(appt);
+    setModalType(type);
+
+    if (type === "edit" && appt) {
+      setFormData({
+        date: appt.date ? appt.date.split("T")[0] : "",
+        time: appt.date ? appt.date.split("T")[1]?.slice(0, 5) : "",
+        reason: appt.reason || "",
+        status: appt.status || "Scheduled",
+      });
+    }
+    setShowModal(true);
+  };
+
+  // handle modal close
+  const handleModalClose = () => {
+    setShowModal(false);
+    setSelectedAppointment(null);
+  };
+
+  // handle form field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // ✅ update appointment
   const handleUpdate = async () => {
     if (!selectedAppointment) return;
-
-    const date = document.getElementById("editDate").value;
-    const time = document.getElementById("editTime").value;
-    const type = document.getElementById("editType").value;
-    const status = document.getElementById("editStatus").value;
 
     try {
       await axios.put(
         `http://localhost:5000/patient/updateAppointment/${selectedAppointment._id}`,
-        { date, time, type, status }
+        {
+          date: formData.date,
+          time: formData.time,
+          reason: formData.reason,
+          status: formData.status,
+        }
       );
-      fetchAppointments(); // refresh table
+
+      toast.success("Appointment updated successfully ✅");
+      fetchAppointments();
       setShowModal(false);
       setSelectedAppointment(null);
     } catch (err) {
       console.error(err);
-      alert("Failed to update appointment");
+      toast.error("Failed to update appointment ❌");
     }
   };
 
-  // Filter appointments
+  // ✅ filter appointments
   const filteredAppointments = appointments.filter((appt) => {
     const patientName = appt.patient?.name || "";
     const matchSearch =
       patientName.toLowerCase().includes(search.toLowerCase()) ||
-      (appt.type || "").toLowerCase().includes(search.toLowerCase()) ||
+      (appt.reason || "").toLowerCase().includes(search.toLowerCase()) ||
       (appt.doctorName || "").toLowerCase().includes(search.toLowerCase());
 
     const matchStatus = statusFilter === "All" || appt.status === statusFilter;
     return matchSearch && matchStatus;
   });
-
-  const handleModalOpen = (appt, type) => {
-    setSelectedAppointment(appt);
-    setModalType(type);
-    setShowModal(true);
-  };
-
-  const handleModalClose = () => {
-    setShowModal(false);
-    setSelectedAppointment(null);
-  };
 
   const formatDateTime = (dateStr) => {
     if (!dateStr) return "-";
@@ -84,6 +124,9 @@ const DoctorAppointments = () => {
 
   return (
     <div className="container py-4">
+      {/* ✅ Toastify Container */}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -103,7 +146,7 @@ const DoctorAppointments = () => {
         <Col md={9} sm={12}>
           <InputGroup>
             <Form.Control
-              placeholder="Search appointments by patient, type, or doctor..."
+              placeholder="Search appointments by patient, reason, or doctor..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -156,12 +199,13 @@ const DoctorAppointments = () => {
                     <td>{appt.doctorName || "-"}</td>
                     <td>
                       <span
-                        className={`badge ${appt.status === "Completed"
+                        className={`badge ${
+                          appt.status === "Completed"
                             ? "bg-secondary"
                             : appt.status === "Scheduled"
-                              ? "bg-success"
-                              : "bg-warning"
-                          }`}
+                            ? "bg-success"
+                            : "bg-danger"
+                        }`}
                       >
                         {appt.status}
                       </span>
@@ -199,7 +243,9 @@ const DoctorAppointments = () => {
       {/* Modal */}
       <Modal show={showModal} onHide={handleModalClose} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{modalType === "view" ? "View Appointment" : "Edit Appointment"}</Modal.Title>
+          <Modal.Title>
+            {modalType === "view" ? "View Appointment" : "Edit Appointment"}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedAppointment && modalType === "view" && (
@@ -219,28 +265,42 @@ const DoctorAppointments = () => {
                 <Form.Label>Appointment Date</Form.Label>
                 <Form.Control
                   type="date"
-                  id="editDate"
-                  defaultValue={selectedAppointment.date?.split("T")[0]}
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
                 />
               </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>Appointment Time</Form.Label>
                 <Form.Control
                   type="time"
-                  id="editTime"
-                  defaultValue={selectedAppointment.date?.split("T")[1]?.slice(0, 5)}
+                  name="time"
+                  value={formData.time}
+                  onChange={handleChange}
                 />
               </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>Reason for Visit</Form.Label>
-                <Form.Control type="text" defaultValue={selectedAppointment.reason} />
+                <Form.Control
+                  type="text"
+                  name="reason"
+                  value={formData.reason}
+                  onChange={handleChange}
+                />
               </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>Status</Form.Label>
-                <Form.Select id="editStatus" defaultValue={selectedAppointment.status}>
-                  <option>Scheduled</option>
-                  <option>Completed</option>
-                  <option>Cancelled</option>
+                <Form.Select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                >
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
                 </Form.Select>
               </Form.Group>
             </Form>

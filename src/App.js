@@ -8,23 +8,23 @@ import DashboardLayout from "./components/DoctorDashboardLayout";
 // Doctor Pages
 import DoctorDashboard from "./pages/Doctor/Dashboard";
 import Patients from "./pages/Doctor/Patients";
-// import Appointments from "./pages/Doctor/Appointments";
-// import Records from "./pages/Doctor/Records";
-// import Analytics from "./pages/Doctor/Analytics";
-// import Settings from "./pages/Doctor/Settings";
-// import Help from "./pages/Doctor/Help";
 import Profile from "./pages/Doctor/Profile";
-// import Notifications from "./pages/Doctor/Notifications";
-
-// Auth Pages
-import DoctorLogin from "./pages/Auth/DoctorLogin";
-import PatientRegister from "./pages/Auth/Register";
-import PatientLogin from "./pages/Auth/PatientLogin";
 import AddPatient from "./pages/Doctor/AddPatient";
 import ViewRecords from "./pages/Doctor/ViewRecords";
 import Schedule from "./pages/Doctor/Schedule";
 import Appointments from "./pages/Doctor/Appointments";
 import HealthRecords from "./pages/Doctor/HealthRecord";
+import SettingsPage from "./pages/Doctor/Settings";
+
+// Auth Pages
+import DoctorLogin from "./pages/Auth/DoctorLogin";
+import PatientRegister from "./pages/Auth/Register";
+import PatientLogin from "./pages/Auth/PatientLogin";
+import PatientForgotPassword from "./pages/Auth/ForgotPassword";
+import VerifyOtp from "./pages/Auth/VerifyOtp";
+import ResetPassword from "./pages/Auth/ResetPasssword";
+
+// Patient Pages
 import PatientLayout from "./components/PatientLayout";
 import Dashboard from "./pages/Patients/Dashboard";
 import AboutUs from "./pages/Patients/AboutUS";
@@ -37,7 +37,9 @@ import FAQs from "./pages/Patients/FAQs";
 import ContactUs from "./pages/Patients/ContactUs";
 import ProfilePage from "./pages/Patients/Profile";
 import AddRecord from "./pages/Doctor/AddRecord";
-import SettingsPage from "./pages/Doctor/Settings";
+import VisitorGuidelines from "./pages/Patients/VisitorGuidelines";
+import PatientsProcess from "./pages/Patients/PatientsProcess";
+import SetAvailability from "./pages/Doctor/SetAvailability";
 
 function App() {
   return (
@@ -137,11 +139,22 @@ function App() {
           </DashboardLayout>
         }
       />
+      <Route
+        path="doctor/setAvailibility"
+        element={
+          <DashboardLayout panel="doctor">
+            <SetAvailability />
+          </DashboardLayout>
+        }
+      />
 
 
       {/* Patient Auth */}
       <Route path="/patient/register" element={<PatientRegister />} />
       <Route path="/patient/login" element={<PatientLogin />} />
+      <Route path="/patient/forgot-password" element={<PatientForgotPassword />} />
+      <Route path="/patient/verify-otp" element={<VerifyOtp />} />
+      <Route path="/patient/reset-password" element={<ResetPassword />} />
 
       {/* Patient Dashboard */}
       <Route
@@ -221,6 +234,22 @@ function App() {
         element={
           <PatientLayout panel="patient">
             <ProfilePage />
+          </PatientLayout>
+        }
+      />
+      <Route
+        path="/patients/visitor-gidelines"
+        element={
+          <PatientLayout panel="patient">
+            <VisitorGuidelines />
+          </PatientLayout>
+        }
+      />
+      <Route
+        path="/patients/process"
+        element={
+          <PatientLayout panel="patient">
+            <PatientsProcess />
           </PatientLayout>
         }
       />

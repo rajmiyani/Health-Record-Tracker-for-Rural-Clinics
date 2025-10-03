@@ -31,6 +31,9 @@ export const registerPatient = (data) => API.post("/auth/register", data);
 
 // Patient login
 export const loginPatient = (data) => API.post("/auth/login", data);
+export const forgotPassword = (data) => API.post("/auth/forgot-password", data);
+export const verifyOtp = (data) => API.post("/auth/verify-otp", data);
+export const resetPassword = (data) => API.post("/auth/update-password", data);
 
 // Doctor login
 export const loginDoctor = (data) => API.post("/auth/doctor/login", data);

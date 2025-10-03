@@ -22,7 +22,6 @@ const HealthRecords = () => {
 
   const navigate = useNavigate();
 
-  // ✅ Fetch records from backend
   useEffect(() => {
     const fetchRecords = async () => {
       try {

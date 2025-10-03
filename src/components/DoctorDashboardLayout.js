@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {
   FaUserInjured,
@@ -10,6 +10,7 @@ import {
   FaBell,
   FaSignOutAlt,
   FaUserCircle,
+  FaCalendarCheck,
 } from "react-icons/fa";
 import { NavLink, useNavigate } from "react-router-dom";
 
@@ -17,6 +18,36 @@ const DashboardLayout = ({ children }) => {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [totalPatients, setTotalPatients] = useState(0);
+  const [totalAppointments, setTotalAppointments] = useState(0);
+
+  useEffect(() => {
+    const fetchTotalPatients = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/doctor/allPatient");
+        const data = await res.json();
+        const patients = Array.isArray(data) ? data : data.patients || [];
+        setTotalPatients(patients.length);
+      } catch (err) {
+        console.error("Error fetching patients count", err);
+      }
+    };
+
+    const fetchTotalAppointments = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/patient/getAppointments");
+        const data = await res.json();
+        const appointments = Array.isArray(data) ? data : [];
+        setTotalAppointments(appointments.length);
+      } catch (err) {
+        console.error("Error fetching appointments count", err);
+      }
+    };
+
+    fetchTotalPatients();
+    fetchTotalAppointments();
+  }, []);
+
 
   // handle logout
   const handleLogout = () => {
@@ -51,10 +82,9 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/dashboard"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${
-                  isActive
-                    ? "bg-success text-white fw-bold"
-                    : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
+                  ? "bg-success text-white fw-bold"
+                  : "text-dark hover-bg"
                 }`
               }
             >
@@ -64,17 +94,31 @@ const DashboardLayout = ({ children }) => {
 
           <li className="nav-item mb-2">
             <NavLink
+              to="/doctor/setAvailibility"
+              className={({ isActive }) =>
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
+                  ? "bg-success text-white fw-bold"
+                  : "text-dark hover-bg"
+                }`
+              }
+            >
+              <FaCalendarCheck className="me-2" /> Set Availibility
+            </NavLink>
+          </li>
+
+          {/* ✅ Dynamic Patients Count */}
+          <li className="nav-item mb-2">
+            <NavLink
               to="/doctor/Patients"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${
-                  isActive
-                    ? "bg-success text-white fw-bold"
-                    : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
+                  ? "bg-success text-white fw-bold"
+                  : "text-dark hover-bg"
                 }`
               }
             >
               <FaUserInjured className="me-2" /> Patients
-              <span className="badge bg-success ms-auto">24</span>
+              <span className="badge bg-success ms-auto">{totalPatients}</span>
             </NavLink>
           </li>
 
@@ -82,15 +126,12 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/appointments"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${
-                  isActive
-                    ? "bg-success text-white fw-bold"
-                    : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive ? "bg-success text-white fw-bold" : "text-dark hover-bg"
                 }`
               }
             >
               <FaCalendarAlt className="me-2" /> Appointments
-              <span className="badge bg-primary ms-auto">8</span>
+              <span className="badge bg-primary ms-auto">{totalAppointments}</span>
             </NavLink>
           </li>
 
@@ -98,10 +139,9 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/healthRecords"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${
-                  isActive
-                    ? "bg-success text-white fw-bold"
-                    : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
+                  ? "bg-success text-white fw-bold"
+                  : "text-dark hover-bg"
                 }`
               }
             >
@@ -113,10 +153,9 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/settings"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${
-                  isActive
-                    ? "bg-success text-white fw-bold"
-                    : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
+                  ? "bg-success text-white fw-bold"
+                  : "text-dark hover-bg"
                 }`
               }
             >
@@ -128,10 +167,9 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/help"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${
-                  isActive
-                    ? "bg-success text-white fw-bold"
-                    : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
+                  ? "bg-success text-white fw-bold"
+                  : "text-dark hover-bg"
                 }`
               }
             >
@@ -224,7 +262,7 @@ const DashboardLayout = ({ children }) => {
                 >
                   <button
                     className="dropdown-item"
-                    onClick={() => navigate("/profile")}
+                    onClick={() => navigate("/doctor/profile")}
                   >
                     <FaUserCircle className="me-2" /> Profile
                   </button>

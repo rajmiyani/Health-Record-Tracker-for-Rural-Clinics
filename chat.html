@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HealthTracker — Doctor Chat (WhatsApp-like)</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    /* Minimal custom styles to mimic WhatsApp-like UI */
+    body { background: #f6f6f7; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    .app { height: 100vh; display: grid; grid-template-columns: 360px 1fr; gap: 1rem; padding: 1rem; }
+    .panel { background: #fff; border-radius: 12px; box-shadow: 0 6px 20px rgba(18,38,63,0.06); overflow: hidden; }
+    .chats-list { height: calc(100vh - 120px); overflow-y: auto; }
+    .chat-item { cursor: pointer; padding: .75rem .9rem; transition: background .12s; }
+    .chat-item:hover { background: #f3fbf5; }
+    .chat-item.active { background: #e6f8ee; }
+    .chat-thumb { width:48px; height:48px; object-fit:cover; border-radius:50%; }
+    .status-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; }
+    .online { background: #34d399; box-shadow: 0 0 0 4px rgba(52,211,153,0.08); }
+    .offline { background: #cbd5e1; }
+    .chat-header { padding: .9rem 1rem; border-bottom: 1px solid #eef2f7; display:flex; align-items:center; gap:.9rem; }
+    .messages-area { height: calc(100vh - 220px); overflow-y:auto; padding:1rem; background: linear-gradient(180deg,#ffffff 0%, #fbfff9 100%); }
+    .msg { max-width: 68%; padding: .6rem .8rem; margin: .5rem 0; border-radius: 14px; line-height:1.2; }
+    .msg.me { background: #dcf8c6; margin-left: auto; border-bottom-right-radius: 4px; }
+    .msg.you { background: #fff; border: 1px solid #edf2f7; border-bottom-left-radius: 4px; }
+    .msg .meta { font-size: 11px; color: #6b7280; margin-top: 4px; display:flex; gap:.5rem; align-items:center; }
+    .composer { padding: .7rem; border-top: 1px solid #eef2f7; display:flex; gap:.6rem; align-items:center; }
+    .composer .input { flex:1; position:relative; }
+    .emoji-picker { position:absolute; left:0; bottom:56px; background:#fff; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.12); padding:8px; display:none; width:280px; flex-wrap:wrap; gap:6px; }
+    .emoji { font-size:20px; cursor:pointer; padding:6px; border-radius:6px; }
+    .attachment-menu { position:absolute; bottom:56px; right:8px; background:#fff; border-radius:10px; padding:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12); display:none; z-index:50; }
+    .small-muted { font-size:12px; color:#6b7280; }
+    .three-dot-menu { cursor:pointer; position:relative; }
+    .media-list { max-height: 300px; overflow:auto; }
+    /* Responsive */
+    @media (max-width: 991px) {
+      .app { grid-template-columns: 1fr; padding: .6rem; }
+      .chats-list { height: 40vh; }
+      .messages-area { height: 40vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app container-fluid">
+    <!-- LEFT: Chats list -->
+    <div class="panel">
+      <div class="p-3 border-bottom d-flex align-items-center gap-3">
+        <img src="https://i.pravatar.cc/80?img=12" class="rounded-circle" width="48" alt="me"/>
+        <div>
+          <div class="fw-bold">Dr. Raj Miyani</div>
+          <div class="small-muted">Online</div>
+        </div>
+        <div class="ms-auto d-flex gap-2">
+          <button class="btn btn-sm btn-light" id="newChatBtn"><i class="fa-solid fa-plus"></i></button>
+          <button class="btn btn-sm btn-light" id="settingsBtn"><i class="fa-solid fa-gear"></i></button>
+        </div>
+      </div>
+
+      <div class="p-3 border-bottom">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass"></i></span>
+          <input id="chatSearch" type="text" class="form-control border-start-0" placeholder="Search or start new chat">
+          <button class="btn btn-outline-secondary" id="filterBtn">Filter</button>
+        </div>
+      </div>
+
+      <div class="chats-list" id="chatsList">
+        <!-- Chat items injected by JS -->
+      </div>
+    </div>
+
+    <!-- RIGHT: Chat window -->
+    <div class="panel d-flex flex-column">
+      <!-- Header -->
+      <div class="chat-header">
+        <img id="activeThumb" src="https://i.pravatar.cc/80?img=5" class="chat-thumb" alt="contact"/>
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <div class="fw-bold" id="activeName">Select a chat</div>
+            <div class="small-muted" id="activeRole">Patient</div>
+          </div>
+          <div class="small-muted" id="activeStatus"><span class="status-dot offline"></span> Offline</div>
+        </div>
+
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-light" id="audioCallBtn" title="Audio call"><i class="fa-solid fa-phone"></i></button>
+          <button class="btn btn-sm btn-light" id="videoCallBtn" title="Video call"><i class="fa-solid fa-video"></i></button>
+
+          <!-- three dot menu -->
+          <div class="dropdown three-dot-menu">
+            <button class="btn btn-sm btn-light" id="threeDotBtn" data-bs-toggle="dropdown"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="#" id="mediaBtn">Media</a></li>
+              <li><a class="dropdown-item" href="#" id="linksBtn">Links & Docs</a></li>
+              <li><a class="dropdown-item" href="#" id="viewContactBtn">View Contact</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="#" id="blockBtn">Block / Report</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages-area" id="messagesArea">
+        <!-- messages injected by JS -->
+        <div class="text-center small-muted py-2" id="emptyHint">Choose or start a chat to begin conversation.</div>
+      </div>
+
+      <!-- Composer -->
+      <div class="composer position-relative">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-light" id="emojiBtn" title="Emoji"><i class="fa-regular fa-face-smile"></i></button>
+          <div class="input" style="min-width:250px;">
+            <div class="emoji-picker d-flex flex-wrap" id="emojiPicker">
+              <!-- emoji list -->
+            </div>
+            <input id="messageInput" class="form-control" placeholder="Write a message..." />
+          </div>
+
+          <div class="position-relative">
+            <button class="btn btn-light" id="attachBtn"><i class="fa-solid fa-paperclip"></i></button>
+            <div class="attachment-menu" id="attachMenu">
+              <label class="d-flex align-items-center gap-2 p-2" style="cursor:pointer">
+                <i class="fa-solid fa-image"></i> <span>Photo</span>
+                <input type="file" id="attachPhoto" accept="image/*" style="display:none">
+              </label>
+              <label class="d-flex align-items-center gap-2 p-2" style="cursor:pointer">
+                <i class="fa-solid fa-camera"></i> <span>Camera</span>
+                <input type="file" id="attachCamera" accept="image/*" capture="environment" style="display:none">
+              </label>
+              <label class="d-flex align-items-center gap-2 p-2" style="cursor:pointer">
+                <i class="fa-solid fa-map-pin"></i> <span>Location</span>
+              </label>
+              <label class="d-flex align-items-center gap-2 p-2" style="cursor:pointer">
+                <i class="fa-solid fa-file"></i> <span>Document</span>
+                <input type="file" id="attachDoc" accept=".pdf,.doc,.docx,.xls,.xlsx" style="display:none;">
+              </label>
+            </div>
+          </div>
+
+          <button class="btn btn-success" id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <!-- Media modal -->
+  <div class="modal fade" id="mediaModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Media, Links & Documents</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small-muted">Shared media and documents with this contact</p>
+          <div class="media-list d-flex gap-2 flex-wrap" id="mediaList">
+            <!-- thumbnails -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View contact modal -->
+  <div class="modal fade" id="contactModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Contact details</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body d-flex gap-3">
+          <img id="contactImage" src="" width="80" class="rounded-circle"/>
+          <div>
+            <h6 id="contactName">Name</h6>
+            <div id="contactStatus" class="small-muted">Online</div>
+            <hr/>
+            <div><i class="fa-solid fa-phone me-2"></i><span id="contactPhone">-</span></div>
+            <div><i class="fa-solid fa-envelope me-2"></i><span id="contactEmail">-</span></div>
+            <div class="mt-2"><button class="btn btn-outline-primary btn-sm">Start Video Call</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap & dependencies JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Sample data for chats
+    const initialChats = [
+      { id: 'c1', name: 'Mahesh Patel', thumb: 'https://i.pravatar.cc/80?img=5', online:true, lastMsg: 'Thanks doc, feeling better', lastTime: '2025-09-09T16:00:00Z', unread:2,
+        messages: [
+          { from: 'you', text: 'How are you feeling today?', time: '2025-09-09T15:45:00Z' },
+          { from: 'me',  text: 'Much better after taking medicine', time: '2025-09-09T15:50:00Z' },
+          { from: 'you', text: 'Great. Keep rest.', time: '2025-09-09T15:55:00Z' },
+        ]
+      },
+      { id: 'c2', name: 'Suman K', thumb: 'https://i.pravatar.cc/80?img=7', online:false, lastMsg: 'Can we reschedule?', lastTime: '2025-09-08T11:00:00Z', unread:0,
+        messages: [
+          { from: 'you', text: 'Your reports are ready.', time: '2025-09-08T10:00:00Z' },
+          { from: 'me',  text: 'Thanks, will come tomorrow', time: '2025-09-08T10:15:00Z' },
+        ]
+      },
+      { id: 'c3', name: 'Rita Sharma', thumb: 'https://i.pravatar.cc/80?img=8', online:true, lastMsg: 'OK doctor', lastTime: '2025-09-05T09:30:00Z', unread:0,
+        messages: [
+          { from: 'me', text: 'Please follow the diet plan', time: '2025-09-05T09:00:00Z' },
+        ]
+      }
+    ];
+
+    // State
+    let chats = JSON.parse(JSON.stringify(initialChats));
+    let activeChatId = null;
+
+    // DOM refs
+    const chatsList = document.getElementById('chatsList');
+    const messagesArea = document.getElementById('messagesArea');
+    const activeThumb = document.getElementById('activeThumb');
+    const activeName = document.getElementById('activeName');
+    const activeStatus = document.getElementById('activeStatus');
+    const activeRole = document.getElementById('activeRole');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatSearch = document.getElementById('chatSearch');
+    const emojiBtn = document.getElementById('emojiBtn');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const attachBtn = document.getElementById('attachBtn');
+    const attachMenu = document.getElementById('attachMenu');
+    const mediaModal = new bootstrap.Modal(document.getElementById('mediaModal'));
+    const contactModal = new bootstrap.Modal(document.getElementById('contactModal'));
+    const mediaList = document.getElementById('mediaList');
+    const contactImage = document.getElementById('contactImage');
+    const contactName = document.getElementById('contactName');
+    const contactStatus = document.getElementById('contactStatus');
+    const contactPhone = document.getElementById('contactPhone');
+    const contactEmail = document.getElementById('contactEmail');
+
+    // Render emoji list
+    const emojis = ['😀','😃','😄','😁','😆','😅','😂','🙂','😊','😍','😘','😇','🤗','🤔','😴','😷','🤒','🤕','👍','👎','🙏','👏','🎉','💊','🏥','📅'];
+    emojis.forEach(e => {
+      const btn = document.createElement('div');
+      btn.className = 'emoji';
+      btn.innerText = e;
+      btn.onclick = () => {
+        messageInput.value += e;
+        messageInput.focus();
+      };
+      emojiPicker.appendChild(btn);
+    });
+
+    // Utility: format date with weekday, day month year, time and Past/Future indicator
+    function formatWithTitle(dateStr) {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      const now = new Date();
+      const datePart = date.toLocaleDateString('en-GB', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+      const timePart = date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+      const status = (date < now) ? 'Past' : 'Future';
+      return `${datePart}, ${timePart} (${status})`;
+    }
+
+    // Render chats list
+    function renderChats(filter = '') {
+      chatsList.innerHTML = '';
+      const q = filter.trim().toLowerCase();
+      chats.filter(c => !q || c.name.toLowerCase().includes(q) || c.lastMsg.toLowerCase().includes(q))
+        .forEach(chat => {
+          const div = document.createElement('div');
+          div.className = 'chat-item d-flex align-items-center';
+          if (chat.id === activeChatId) div.classList.add('active');
+          div.innerHTML = `
+            <img src="${chat.thumb}" class="chat-thumb me-3" alt="${chat.name}">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center">
+                <div class="fw-bold">${chat.name}</div>
+                <div class="small-muted ms-auto">${new Date(chat.lastTime).toLocaleDateString()}</div>
+              </div>
+              <div class="small-muted d-flex align-items-center">
+                <span class="status-dot ${chat.online ? 'online' : 'offline'}"></span>
+                <div class="text-truncate" style="max-width:200px">${chat.lastMsg}</div>
+              </div>
+            </div>
+            <div class="ms-2 text-end">
+              ${chat.unread ? `<span class="badge bg-success">${chat.unread}</span>` : ''}
+            </div>
+          `;
+          div.onclick = () => openChat(chat.id);
+          chatsList.appendChild(div);
+        });
+    }
+
+    // Open chat by id
+    function openChat(id) {
+      activeChatId = id;
+      const chat = chats.find(c => c.id === id);
+      if (!chat) return;
+      renderChats(chatSearch.value);
+      // clear unread
+      chat.unread = 0;
+      activeThumb.src = chat.thumb;
+      activeName.innerText = chat.name;
+      activeRole.innerText = 'Patient';
+      activeStatus.innerHTML = `<span class="status-dot ${chat.online ? 'online' : 'offline'}"></span> ${chat.online ? 'Online' : 'Offline'}`;
+      renderMessages(chat.messages);
+      document.getElementById('emptyHint').style.display = 'none';
+    }
+
+    // Render messages of active chat
+    function renderMessages(messages) {
+      messagesArea.innerHTML = '';
+      messages.forEach(m => {
+        const el = document.createElement('div');
+        el.className = 'd-flex flex-column';
+        const bubble = document.createElement('div');
+        bubble.className = 'msg ' + (m.from === 'me' ? 'me' : 'you');
+        bubble.innerHTML = `<div>${escapeHtml(m.text)}</div><div class="meta">${formatMiniTime(m.time)}</div>`;
+        el.appendChild(bubble);
+        messagesArea.appendChild(el);
+      });
+      // scroll to bottom
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    function formatMiniTime(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
+      return text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+    }
+
+    // Send message
+    function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text || !activeChatId) return;
+      const chat = chats.find(c => c.id === activeChatId);
+      const now = new Date().toISOString();
+      const msg = { from: 'me', text, time: now };
+      chat.messages.push(msg);
+      chat.lastMsg = text;
+      chat.lastTime = now;
+      renderMessages(chat.messages);
+      renderChats(chatSearch.value);
+      messageInput.value = '';
+      // For demo: auto-reply after 1s
+      setTimeout(() => {
+        chat.messages.push({ from:'you', text: 'Thanks, noted.', time: new Date().toISOString() });
+        chat.lastMsg = 'Thanks, noted.';
+        chat.lastTime = new Date().toISOString();
+        renderMessages(chat.messages);
+        renderChats(chatSearch.value);
+      }, 1000);
+    }
+
+    // Search
+    chatSearch.addEventListener('input', () => {
+      renderChats(chatSearch.value);
+    });
+
+    // Send on click or Enter
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Emoji toggle
+    emojiBtn.addEventListener('click', () => {
+      emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex';
+      attachMenu.style.display = 'none';
+    });
+
+    // Attach toggle
+    attachBtn.addEventListener('click', (e) => {
+      attachMenu.style.display = attachMenu.style.display === 'block' ? 'none' : 'block';
+      emojiPicker.style.display = 'none';
+    });
+
+    // Hide menus on outside click
+    document.addEventListener('click', (e) => {
+      if (!emojiBtn.contains(e.target) && !emojiPicker.contains(e.target)) emojiPicker.style.display = 'none';
+      if (!attachBtn.contains(e.target) && !attachMenu.contains(e.target)) attachMenu.style.display = 'none';
+    });
+
+    // Media / links / docs handling
+    document.getElementById('mediaBtn').addEventListener('click', () => {
+      populateMediaModal();
+      mediaModal.show();
+    });
+
+    document.getElementById('linksBtn').addEventListener('click', () => {
+      populateMediaModal();
+      mediaModal.show();
+    });
+
+    document.getElementById('viewContactBtn').addEventListener('click', () => {
+      openContactModal();
+    });
+
+    // File inputs preview (photo)
+    document.getElementById('attachPhoto').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        // push as message with image tag
+        const chat = chats.find(c => c.id === activeChatId);
+        if (!chat) return alert('Open a chat first');
+        chat.messages.push({ from:'me', text: `[Image]`, time: new Date().toISOString(), media: reader.result });
+        chat.lastMsg = '[Image]';
+        chat.lastTime = new Date().toISOString();
+        renderMessages(chat.messages);
+        renderChats(chatSearch.value);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // View contact modal populate
+    function openContactModal() {
+      const chat = chats.find(c => c.id === activeChatId);
+      if (!chat) return alert('Open a chat first');
+      contactImage.src = chat.thumb;
+      contactName.innerText = chat.name;
+      contactStatus.innerHTML = `<span class="status-dot ${chat.online ? 'online': 'offline'}"></span> ${chat.online ? 'Online' : 'Offline'}`;
+      contactPhone.innerText = '+91 9xx xxx xxxx';
+      contactEmail.innerText = `${chat.name.replace(' ','').toLowerCase()}@example.com`;
+      contactModal.show();
+    }
+
+    // Populate media modal with images from messages
+    function populateMediaModal() {
+      mediaList.innerHTML = '';
+      const chat = chats.find(c => c.id === activeChatId);
+      if (!chat) {
+        mediaList.innerHTML = `<div class="small-muted">No chat selected.</div>`;
+        return;
+      }
+      const media = chat.messages.filter(m => m.media).reverse();
+      if (!media.length) {
+        mediaList.innerHTML = `<div class="small-muted">No media or documents shared yet.</div>`;
+        return;
+      }
+      media.forEach(m => {
+        const el = document.createElement('div');
+        el.className = 'p-1';
+        el.innerHTML = `<img src="${m.media}" style="max-width:140px; border-radius:8px; border:1px solid #eef2f7">`;
+        mediaList.appendChild(el);
+      });
+    }
+
+    // Initialize UI
+    renderChats();
+    // Optionally open first chat
+    if (chats.length) openChat(chats[0].id);
+  </script>
+</body>
+</html>

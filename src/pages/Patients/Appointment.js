@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Card, Button, Form, Row, Col } from "react-bootstrap";
+import { Card, Button, Form, Row, Col, InputGroup } from "react-bootstrap";
 import {
   FaCalendarAlt, FaUser, FaPhone, FaEnvelope,
-  FaNotesMedical, FaVenusMars, FaBirthdayCake, FaStethoscope
+  FaNotesMedical, FaVenusMars, FaBirthdayCake, FaStethoscope, FaClock
 } from "react-icons/fa";
 import { BookAppointment } from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Appointment = () => {
   const [formData, setFormData] = useState({
@@ -35,8 +36,7 @@ const Appointment = () => {
       };
 
       const res = await BookAppointment(payload);
-
-      toast.success("Appointment booked successfully!");
+      toast.success("Appointment Booked successfully!");
 
       console.log("Appointment response:", res.data);
 
@@ -60,69 +60,49 @@ const Appointment = () => {
   };
 
   return (
-    <div className="py-5" style={{ backgroundColor: "rgb(232, 245, 233)" }}>
-      <Card className="shadow-lg border-0 rounded-4 p-4 mx-auto" style={{ maxWidth: "800px" }}>
-        <h2 className="text-center mb-4 text-success fw-bold">📅 Book Your Appointment</h2>
+    <div className="appointment-section py-5">
+      <Card className="shadow-lg border-0 rounded-4 p-4 mx-auto" style={{ maxWidth: "850px" }}>
+        <h2 className="text-center mb-4 text-success fw-bold">
+          <FaCalendarAlt className="me-2" />
+          Book Your Appointment
+        </h2>
+        <p className="text-center text-muted mb-4">
+          Please fill in your details to schedule an appointment with <b>Dr. Raj Miyani</b>.
+        </p>
+
         <Form onSubmit={handleSubmit}>
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label><FaUser className="me-2" />Full Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="name"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
+                <Form.Label>Full Name</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text><FaUser /></InputGroup.Text>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputGroup>
               </Form.Group>
             </Col>
 
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label><FaEnvelope className="me-2" />Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  name="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label><FaPhone className="me-2" />Phone Number</Form.Label>
-                <Form.Control
-                  type="tel"
-                  name="phone"
-                  placeholder="Enter your phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-            </Col>
-
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label><FaVenusMars className="me-2" />Gender</Form.Label>
-                <Form.Select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select Gender</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                  <option>Other</option>
-                </Form.Select>
+                <Form.Label>Email</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text><FaEnvelope /></InputGroup.Text>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputGroup>
               </Form.Group>
             </Col>
           </Row>
@@ -130,33 +110,38 @@ const Appointment = () => {
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label><FaBirthdayCake className="me-2" />Date of Birth</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="dob"
-                  value={formData.dob}
-                  onChange={handleChange}
-                  required
-                />
+                <Form.Label>Phone Number</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text><FaPhone /></InputGroup.Text>
+                  <Form.Control
+                    type="tel"
+                    name="phone"
+                    placeholder="Enter your phone number"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputGroup>
               </Form.Group>
             </Col>
 
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label><FaStethoscope className="me-2" />Department</Form.Label>
-                <Form.Select
-                  name="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select Department</option>
-                  <option>General Medicine</option>
-                  <option>Pediatrics</option>
-                  <option>Gynecology</option>
-                  <option>Urology</option>
-                  <option>Emergency Care</option>
-                </Form.Select>
+                <Form.Label>Gender</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text><FaVenusMars /></InputGroup.Text>
+                  <Form.Select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Gender</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                  </Form.Select>
+                </InputGroup>
               </Form.Group>
             </Col>
           </Row>
@@ -164,46 +149,95 @@ const Appointment = () => {
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label><FaCalendarAlt className="me-2" />Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  required
-                />
+                <Form.Label>Date of Birth</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text><FaBirthdayCake /></InputGroup.Text>
+                  <Form.Control
+                    type="date"
+                    name="dob"
+                    value={formData.dob}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputGroup>
               </Form.Group>
             </Col>
 
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>⏰ Time</Form.Label>
-                <Form.Control
-                  type="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleChange}
-                  required
-                />
+                <Form.Label>Department</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text><FaStethoscope /></InputGroup.Text>
+                  <Form.Select
+                    name="department"
+                    value={formData.department}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Department</option>
+                    <option>General Medicine</option>
+                    <option>Pediatrics</option>
+                    <option>Gynecology</option>
+                    <option>Urology</option>
+                    <option>Emergency Care</option>
+                  </Form.Select>
+                </InputGroup>
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Date</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text><FaCalendarAlt /></InputGroup.Text>
+                  <Form.Control
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputGroup>
+              </Form.Group>
+            </Col>
+
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Time</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text><FaClock /></InputGroup.Text>
+                  <Form.Control
+                    type="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    required
+                  />
+                </InputGroup>
               </Form.Group>
             </Col>
           </Row>
 
           <Form.Group className="mb-3">
-            <Form.Label><FaNotesMedical className="me-2" />Reason for Visit</Form.Label>
-            <Form.Control
-              as="textarea"
-              name="reason"
-              rows={3}
-              placeholder="Describe your symptoms or reason for visit"
-              value={formData.reason}
-              onChange={handleChange}
-              required
-            />
+            <Form.Label>Reason for Visit</Form.Label>
+            <InputGroup>
+              <InputGroup.Text><FaNotesMedical /></InputGroup.Text>
+              <Form.Control
+                as="textarea"
+                name="reason"
+                rows={3}
+                placeholder="Describe your symptoms or reason for visit"
+                value={formData.reason}
+                onChange={handleChange}
+                required
+              />
+            </InputGroup>
           </Form.Group>
 
           <div className="d-grid mt-3">
-            <Button type="submit" variant="success" size="lg" className="fw-bold">
+            <Button type="submit" size="lg" className="fw-bold" style={{ backgroundColor: "#28a745", border: "none" }}>
               Book Appointment
             </Button>
           </div>
