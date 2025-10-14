@@ -21,7 +21,7 @@ export default function PatientLogin() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/auth/login", {
+      const res = await fetch("https://health-record-tracker-for-rural-clinics.onrender.com/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: form.email, password: form.password }),
@@ -51,7 +51,7 @@ export default function PatientLogin() {
     try {
       const token = credentialResponse.credential;
 
-      const res = await fetch("http://localhost:5000/auth/google-login", {
+      const res = await fetch("https://health-record-tracker-for-rural-clinics.onrender.com/auth/google-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
