@@ -47,8 +47,8 @@ const Patients = () => {
     return `${formattedDate} ${formattedTime}`;
   };
 
-  // Get last appointment date (latest one in appointments array)
-  const getLastAppointmentDate = (appointments = []) => {
+  // Get Next appointment date (latest one in appointments array)
+  const getNextAppointmentDate = (appointments = []) => {
     if (!appointments.length) return null;
     const sorted = [...appointments].sort(
       (a, b) => new Date(b.date) - new Date(a.date)
@@ -158,8 +158,8 @@ const Patients = () => {
 
                     {/* Next Visit */}
                     <p className="mb-3">
-                      <FaCalendarAlt className="me-2 text-primary" /> Last Appointment:{" "}
-                      <strong>{formatDateTime(getLastAppointmentDate(patient.appointments))}</strong>
+                      <FaCalendarAlt className="me-2 text-primary" /> Next Appointment:{" "}
+                      <strong>{formatDateTime(getNextAppointmentDate(patient.appointments))}</strong>
                     </p>
 
                     {/* Buttons */}

@@ -20,6 +20,7 @@ const DashboardLayout = ({ children }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [totalPatients, setTotalPatients] = useState(0);
   const [totalAppointments, setTotalAppointments] = useState(0);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     const fetchTotalPatients = async () => {
@@ -47,6 +48,27 @@ const DashboardLayout = ({ children }) => {
     fetchTotalPatients();
     fetchTotalAppointments();
   }, []);
+
+  const doctorId = "68e8d8fcfd1132a6352c63e6";
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/doctor/notifications/${doctorId}`);
+        const data = await res.json();
+        if (data.success) setNotifications(data.notifications);
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+      }
+    };
+
+    fetchNotifications();
+
+    // Optional: Auto-refresh every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
 
 
   // handle logout
@@ -195,7 +217,11 @@ const DashboardLayout = ({ children }) => {
         <div className="d-flex justify-content-between align-items-center border-bottom p-3 bg-white position-relative">
           <div>
             <h5 className="mb-0">Doctor Panel</h5>
+            <small className="text-muted">
+              Stay healthy, stay productive! You have {totalAppointments} appointments today.
+            </small>
           </div>
+
 
           <div className="d-flex align-items-center">
             {/* Notification */}
@@ -205,22 +231,30 @@ const DashboardLayout = ({ children }) => {
               style={{ cursor: "pointer" }}
             >
               <FaBell size={20} />
-              <span
-                className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                style={{ fontSize: "10px" }}
-              >
-                3
-              </span>
+              {notifications.length > 0 && (
+                <span
+                  className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                  style={{ fontSize: "10px" }}
+                >
+                  {notifications.length}
+                </span>
+              )}
 
-              {/* Notifications dropdown */}
               {showNotifications && (
                 <div
                   className="position-absolute bg-white border shadow rounded p-2 mt-2"
                   style={{ width: "250px", right: 0, zIndex: 1000 }}
                 >
-                  <p className="mb-1">🔔 Appointment with James</p>
-                  <p className="mb-1">🔔 New Patient Registered</p>
-                  <p className="mb-1">🔔 Report Ready</p>
+                  {notifications.length > 0 ? (
+                    notifications.map((note, index) => (
+                      <p key={index} className="mb-1">
+                        {note.message}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="text-muted mb-0">No new notifications</p>
+                  )}
+
                   <button
                     className="btn btn-sm btn-link p-0 mt-1"
                     onClick={() => navigate("/notifications")}
