@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/", // Backend API
+  baseURL: "https://health-record-tracker-for-rural-clinics.onrender.com/", // Backend API
 });
 
 // Automatically attach token if exists
