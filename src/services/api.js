@@ -1,13 +1,13 @@
 // services/api.js
 import axios from "axios";
 
-// const API = axios.create({
-//   baseURL: "https://health-record-tracker-for-rural-clinics.onrender.com/", // Backend API
-// });
-
 const API = axios.create({
-  baseURL: "http://localhost:5000/", // Backend API
+  baseURL: "https://health-record-tracker-for-rural-clinics.onrender.com/", // Backend API
 });
+
+// const API = axios.create({
+//   baseURL: "http://localhost:5000/", // Backend API
+// });
 
 // Automatically attach token if exists
 API.interceptors.request.use((config) => {
