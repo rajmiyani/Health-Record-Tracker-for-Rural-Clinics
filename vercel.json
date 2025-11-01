@@ -5,30 +5,6 @@
   "framework": "create-react-app",
   "rewrites": [
     {
-      "source": "/static/(.*)",
-      "destination": "/static/$1"
-    },
-    {
-      "source": "/manifest.json",
-      "destination": "/manifest.json"
-    },
-    {
-      "source": "/favicon.ico",
-      "destination": "/favicon.ico"
-    },
-    {
-      "source": "/logo192.png",
-      "destination": "/logo192.png"
-    },
-    {
-      "source": "/logo512.png",
-      "destination": "/logo512.png"
-    },
-    {
-      "source": "/robots.txt",
-      "destination": "/robots.txt"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
