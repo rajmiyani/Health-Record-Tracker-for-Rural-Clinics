@@ -43,6 +43,7 @@ const navItems = [
   },
   { name: "Specialties", icon: <FaHospital />, link: "/patients/specialties" },
   { name: "Find Doctors+", link: "/patients/doctors" },
+  { name: "Medical Records", icon: <FaStethoscope />, link: "/patients/medical-records" },
   { name: "My Appointment+", link: "/patients/my-appointments" },
   { name: "Awards+", link: "/patients/awards" },
   { name: "Blogs+", link: "/patients/blogs" },

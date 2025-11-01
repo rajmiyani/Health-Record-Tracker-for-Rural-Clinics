@@ -16,31 +16,43 @@ const HealthRecords = () => {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState("view"); 
+  const [modalType, setModalType] = useState("view");
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [records, setRecords] = useState([]);
+  const [patients, setPatients] = useState([]); // ✅ store all patients with IDs
 
   const navigate = useNavigate();
 
+  // ✅ Fetch records and patients
   useEffect(() => {
-    const fetchRecords = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await axios.get("http://localhost:5000/doctor/allRecords");
-        setRecords(data);
+        const [recordsRes, patientsRes] = await Promise.all([
+          axios.get("http://localhost:5000/doctor/allRecords"),
+          axios.get("http://localhost:5000/doctor/allPatient"),
+        ]);
+
+        setRecords(recordsRes.data);
+        setPatients(patientsRes.data);
       } catch (err) {
-        console.error("Error fetching records:", err);
+        console.error("Error fetching data:", err);
       }
     };
-    fetchRecords();
+    fetchData();
   }, []);
 
-  // Filtering
+  // ✅ Searching & Filtering
   const filteredRecords = records.filter((rec) => {
+    const patientName = rec.patient?.name?.toLowerCase() || "";
+    const provider = rec.provider?.toLowerCase() || "";
+    const diagnosis = rec.diagnosis?.toLowerCase() || "";
+    const type = rec.type?.toLowerCase() || "";
+
     const matchSearch =
-      rec.patient.toLowerCase().includes(search.toLowerCase()) ||
-      rec.provider.toLowerCase().includes(search.toLowerCase()) ||
-      rec.diagnosis.toLowerCase().includes(search.toLowerCase()) ||
-      rec.type.toLowerCase().includes(search.toLowerCase());
+      patientName.includes(search.toLowerCase()) ||
+      provider.includes(search.toLowerCase()) ||
+      diagnosis.includes(search.toLowerCase()) ||
+      type.includes(search.toLowerCase());
 
     const matchType = typeFilter === "All" || rec.type === typeFilter;
 
@@ -61,8 +73,17 @@ const HealthRecords = () => {
   // ✅ Update record in backend
   const handleSaveChanges = async () => {
     try {
-      await axios.put(`http://localhost:5000/doctor/updateRecord/${selectedRecord._id}`, selectedRecord);
-      setRecords(records.map((r) => (r._id === selectedRecord._id ? selectedRecord : r)));
+      await axios.put(
+        `http://localhost:5000/doctor/updateRecord/${selectedRecord._id}`,
+        {
+          ...selectedRecord,
+          patientId: selectedRecord.patient?._id || selectedRecord.patientId, // send correct ObjectId
+        }
+      );
+
+      setRecords((prev) =>
+        prev.map((r) => (r._id === selectedRecord._id ? selectedRecord : r))
+      );
       handleModalClose();
     } catch (err) {
       console.error("Error updating record:", err);
@@ -140,18 +161,14 @@ const HealthRecords = () => {
                   <tr key={rec._id}>
                     <td>
                       <FaUser className="me-2 text-muted" />
-                      {rec.patient}
+                      {rec.patient?.name || "Unknown"}
                     </td>
                     <td>{new Date(rec.date).toLocaleDateString()}</td>
                     <td>
                       {rec.type === "Consultation" ? (
-                        <span className="badge bg-primary">
-                          Consultation
-                        </span>
+                        <span className="badge bg-primary">Consultation</span>
                       ) : (
-                        <span className="badge bg-success">
-                          Lab Results
-                        </span>
+                        <span className="badge bg-success">Lab Results</span>
                       )}
                     </td>
                     <td>{rec.provider}</td>
@@ -194,45 +211,95 @@ const HealthRecords = () => {
         <Modal.Body>
           {selectedRecord && modalType === "view" && (
             <div>
-              <p><strong>Patient:</strong> {selectedRecord.patient}</p>
-              <p><strong>Date:</strong> {new Date(selectedRecord.date).toLocaleDateString()}</p>
-              <p><strong>Type:</strong> {selectedRecord.type}</p>
-              <p><strong>Provider:</strong> {selectedRecord.provider}</p>
-              <p><strong>Diagnosis:</strong> {selectedRecord.diagnosis}</p>
-              <p><strong>Treatment:</strong> {selectedRecord.treatment}</p>
-              <p><strong>Vitals:</strong> {selectedRecord.vitals}</p>
+              <p>
+                <strong>Patient:</strong> {selectedRecord.patient?.name || "Unknown"}
+              </p>
+              <p>
+                <strong>Date:</strong>{" "}
+                {new Date(selectedRecord.date).toLocaleDateString()}
+              </p>
+              <p>
+                <strong>Type:</strong> {selectedRecord.type}
+              </p>
+              <p>
+                <strong>Provider:</strong> {selectedRecord.provider}
+              </p>
+              <p>
+                <strong>Diagnosis:</strong> {selectedRecord.diagnosis}
+              </p>
+              <p>
+                <strong>Treatment:</strong> {selectedRecord.treatment}
+              </p>
+              <p>
+                <strong>Vitals:</strong> {selectedRecord.vitals}
+              </p>
             </div>
           )}
 
           {selectedRecord && modalType === "edit" && (
             <Form>
               <Form.Group className="mb-3">
+                <Form.Label>Patient</Form.Label>
+                <Form.Select
+                  value={selectedRecord.patient?._id || ""}
+                  onChange={(e) => {
+                    const patientObj = patients.find(
+                      (p) => p._id === e.target.value
+                    );
+                    setSelectedRecord({
+                      ...selectedRecord,
+                      patient: patientObj,
+                      patientId: patientObj?._id,
+                    });
+                  }}
+                >
+                  <option value="">Select Patient</option>
+                  {patients.map((p) => (
+                    <option key={p._id} value={p._id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+
+              <Form.Group className="mb-3">
                 <Form.Label>Diagnosis</Form.Label>
                 <Form.Control
                   type="text"
                   value={selectedRecord.diagnosis}
                   onChange={(e) =>
-                    setSelectedRecord({ ...selectedRecord, diagnosis: e.target.value })
+                    setSelectedRecord({
+                      ...selectedRecord,
+                      diagnosis: e.target.value,
+                    })
                   }
                 />
               </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>Treatment</Form.Label>
                 <Form.Control
                   type="text"
                   value={selectedRecord.treatment}
                   onChange={(e) =>
-                    setSelectedRecord({ ...selectedRecord, treatment: e.target.value })
+                    setSelectedRecord({
+                      ...selectedRecord,
+                      treatment: e.target.value,
+                    })
                   }
                 />
               </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>Vitals</Form.Label>
                 <Form.Control
                   type="text"
                   value={selectedRecord.vitals}
                   onChange={(e) =>
-                    setSelectedRecord({ ...selectedRecord, vitals: e.target.value })
+                    setSelectedRecord({
+                      ...selectedRecord,
+                      vitals: e.target.value,
+                    })
                   }
                 />
               </Form.Group>

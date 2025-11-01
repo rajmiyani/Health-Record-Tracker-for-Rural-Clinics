@@ -35,7 +35,6 @@ const ProfilePage = () => {
     const [patientData, setPatientData] = useState(null);
     const [editMode, setEditMode] = useState(false);
     const [updatedData, setUpdatedData] = useState({});
-    const [loading, setLoading] = useState(true);
     const [selectedFile, setSelectedFile] = useState(null);
     const fileInputRef = useRef(null);
 
@@ -76,8 +75,6 @@ const ProfilePage = () => {
                 const errorMsg =
                     err.response?.data?.message || "Failed to load profile";
                 toast.error(errorMsg);
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -152,9 +149,9 @@ const ProfilePage = () => {
         return formData;
     };
 
-    if (loading) {
-        return <p className="text-center mt-5">Loading profile...</p>;
-    }
+    // if (loading) {
+    //     return <p className="text-center mt-5">Loading profile...</p>;
+    // }
 
     return (
         <div

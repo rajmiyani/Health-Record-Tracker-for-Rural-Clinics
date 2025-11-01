@@ -40,6 +40,7 @@ import AddRecord from "./pages/Doctor/AddRecord";
 import VisitorGuidelines from "./pages/Patients/VisitorGuidelines";
 import PatientsProcess from "./pages/Patients/PatientsProcess";
 import SetAvailability from "./pages/Doctor/SetAvailability";
+import MedicalRecord from "./pages/Patients/MedicalRecord";
 
 function App() {
   return (
@@ -186,6 +187,14 @@ function App() {
         element={
           <PatientLayout panel="patient">
             <FindDoctor />
+          </PatientLayout>
+        }
+      />
+      <Route
+        path="/patients/medical-records"
+        element={
+          <PatientLayout panel="patient">
+            <MedicalRecord />
           </PatientLayout>
         }
       />

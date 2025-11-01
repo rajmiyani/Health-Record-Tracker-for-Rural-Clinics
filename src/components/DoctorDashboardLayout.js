@@ -16,19 +16,33 @@ import { NavLink, useNavigate } from "react-router-dom";
 
 const DashboardLayout = ({ children }) => {
   const navigate = useNavigate();
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [totalPatients, setTotalPatients] = useState(0);
   const [totalAppointments, setTotalAppointments] = useState(0);
-  const [notifications, setNotifications] = useState([]);
 
+  // ✅ Notification States
+  const [notifications, setNotifications] = useState([]);
+  const [newNotifications, setNewNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+
+  const doctorId = "68e8d8fcfd1132a6352c63e6";
+
+  // ✅ Fetch Patients & Appointments with localStorage caching
   useEffect(() => {
+    const storedPatients = localStorage.getItem("totalPatients");
+    const storedAppointments = localStorage.getItem("totalAppointments");
+
+    if (storedPatients) setTotalPatients(JSON.parse(storedPatients));
+    if (storedAppointments) setTotalAppointments(JSON.parse(storedAppointments));
+
     const fetchTotalPatients = async () => {
       try {
         const res = await fetch("http://localhost:5000/doctor/allPatient");
         const data = await res.json();
         const patients = Array.isArray(data) ? data : data.patients || [];
         setTotalPatients(patients.length);
+        localStorage.setItem("totalPatients", JSON.stringify(patients.length));
       } catch (err) {
         console.error("Error fetching patients count", err);
       }
@@ -40,6 +54,7 @@ const DashboardLayout = ({ children }) => {
         const data = await res.json();
         const appointments = Array.isArray(data) ? data : [];
         setTotalAppointments(appointments.length);
+        localStorage.setItem("totalAppointments", JSON.stringify(appointments.length));
       } catch (err) {
         console.error("Error fetching appointments count", err);
       }
@@ -49,32 +64,54 @@ const DashboardLayout = ({ children }) => {
     fetchTotalAppointments();
   }, []);
 
-  const doctorId = "68e8d8fcfd1132a6352c63e6";
-
+  // ✅ Fetch Notifications with localStorage caching
   useEffect(() => {
+    const storedNotifications = localStorage.getItem("notifications");
+    if (storedNotifications) {
+      const parsed = JSON.parse(storedNotifications);
+      setNotifications(parsed);
+      setNewNotifications(parsed);
+    }
+
     const fetchNotifications = async () => {
       try {
         const res = await fetch(`http://localhost:5000/doctor/notifications/${doctorId}`);
         const data = await res.json();
-        if (data.success) setNotifications(data.notifications);
+        if (data.success && Array.isArray(data.notifications)) {
+          setNotifications(data.notifications);
+          setNewNotifications(data.notifications);
+          setHasUnread(true);
+          localStorage.setItem("notifications", JSON.stringify(data.notifications));
+        }
       } catch (err) {
         console.error("Error fetching notifications:", err);
       }
     };
 
     fetchNotifications();
-
-    // Optional: Auto-refresh every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
 
+  // ✅ Handle Notification Toggle
+  const handleToggleNotifications = () => {
+    if (showNotifications) {
+      setShowNotifications(false);
+      setHasUnread(false);
+      setNewNotifications([]);
+    } else {
+      setShowNotifications(true);
+      if (newNotifications.length > 0) {
+        setHasUnread(false);
+      }
+    }
+  };
 
-
-  // handle logout
+  // ✅ Logout
   const handleLogout = () => {
     alert("Logged out!");
-    navigate("doctor/login");
+    localStorage.clear();
+    navigate("/doctor/login");
   };
 
   return (
@@ -104,9 +141,8 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/dashboard"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
-                  ? "bg-success text-white fw-bold"
-                  : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${
+                  isActive ? "bg-success text-white fw-bold" : "text-dark hover-bg"
                 }`
               }
             >
@@ -118,13 +154,12 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/setAvailibility"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
-                  ? "bg-success text-white fw-bold"
-                  : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${
+                  isActive ? "bg-success text-white fw-bold" : "text-dark hover-bg"
                 }`
               }
             >
-              <FaCalendarCheck className="me-2" /> Set Availibility
+              <FaCalendarCheck className="me-2" /> Set Availability
             </NavLink>
           </li>
 
@@ -133,9 +168,8 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/Patients"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
-                  ? "bg-success text-white fw-bold"
-                  : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${
+                  isActive ? "bg-success text-white fw-bold" : "text-dark hover-bg"
                 }`
               }
             >
@@ -148,7 +182,8 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/appointments"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive ? "bg-success text-white fw-bold" : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${
+                  isActive ? "bg-success text-white fw-bold" : "text-dark hover-bg"
                 }`
               }
             >
@@ -161,9 +196,8 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/healthRecords"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
-                  ? "bg-success text-white fw-bold"
-                  : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${
+                  isActive ? "bg-success text-white fw-bold" : "text-dark hover-bg"
                 }`
               }
             >
@@ -175,9 +209,8 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/settings"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
-                  ? "bg-success text-white fw-bold"
-                  : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${
+                  isActive ? "bg-success text-white fw-bold" : "text-dark hover-bg"
                 }`
               }
             >
@@ -189,9 +222,8 @@ const DashboardLayout = ({ children }) => {
             <NavLink
               to="/doctor/help"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center px-3 py-2 rounded ${isActive
-                  ? "bg-success text-white fw-bold"
-                  : "text-dark hover-bg"
+                `nav-link d-flex align-items-center px-3 py-2 rounded ${
+                  isActive ? "bg-success text-white fw-bold" : "text-dark hover-bg"
                 }`
               }
             >
@@ -200,7 +232,7 @@ const DashboardLayout = ({ children }) => {
           </li>
         </ul>
 
-        {/* Logout Button (Fixed Bottom) */}
+        {/* Logout Button */}
         <div className="mt-auto">
           <button
             className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center"
@@ -213,7 +245,7 @@ const DashboardLayout = ({ children }) => {
 
       {/* Main Content */}
       <div className="flex-grow-1">
-        {/* Header */}
+        {/* Header Section */}
         <div className="d-flex justify-content-between align-items-center border-bottom p-3 bg-white position-relative">
           <div>
             <h5 className="mb-0">Doctor Panel</h5>
@@ -222,21 +254,20 @@ const DashboardLayout = ({ children }) => {
             </small>
           </div>
 
-
           <div className="d-flex align-items-center">
-            {/* Notification */}
+            {/* 🔔 Notification */}
             <div
               className="me-4 position-relative"
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={handleToggleNotifications}
               style={{ cursor: "pointer" }}
             >
               <FaBell size={20} />
-              {notifications.length > 0 && (
+              {hasUnread && (
                 <span
                   className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                   style={{ fontSize: "10px" }}
                 >
-                  {notifications.length}
+                  {newNotifications.length}
                 </span>
               )}
 
@@ -245,16 +276,15 @@ const DashboardLayout = ({ children }) => {
                   className="position-absolute bg-white border shadow rounded p-2 mt-2"
                   style={{ width: "250px", right: 0, zIndex: 1000 }}
                 >
-                  {notifications.length > 0 ? (
-                    notifications.map((note, index) => (
+                  {newNotifications.length > 0 ? (
+                    newNotifications.map((note, index) => (
                       <p key={index} className="mb-1">
                         {note.message}
                       </p>
                     ))
                   ) : (
-                    <p className="text-muted mb-0">No new notifications</p>
+                    <p className="text-muted mb-0 text-center">No new notifications</p>
                   )}
-
                   <button
                     className="btn btn-sm btn-link p-0 mt-1"
                     onClick={() => navigate("/notifications")}
@@ -265,7 +295,7 @@ const DashboardLayout = ({ children }) => {
               )}
             </div>
 
-            {/* Profile Menu */}
+            {/* 👤 Profile Menu */}
             <div
               className="d-flex align-items-center position-relative"
               style={{ cursor: "pointer" }}
@@ -283,7 +313,7 @@ const DashboardLayout = ({ children }) => {
               >
                 RM
               </div>
-              {/* Dropdown */}
+
               {showProfileMenu && (
                 <div
                   className="position-absolute bg-white border shadow rounded p-2"
@@ -322,7 +352,7 @@ const DashboardLayout = ({ children }) => {
         <div className="p-4">{children}</div>
       </div>
 
-      {/* Hover style for sidebar */}
+      {/* Hover style */}
       <style>
         {`
           .hover-bg:hover {
