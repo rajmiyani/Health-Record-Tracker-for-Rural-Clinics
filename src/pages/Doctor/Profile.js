@@ -37,7 +37,7 @@ const DoctorProfile = () => {
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
-        const res = await fetch("http://localhost:5000/doctor/getAvailability");
+        const res = await fetch("https://health-record-tracker-for-rural-clinics.onrender.com/doctor/getAvailability");
         if (!res.ok) throw new Error("Failed to fetch availability");
         const data = await res.json();
         setAvailability(data);

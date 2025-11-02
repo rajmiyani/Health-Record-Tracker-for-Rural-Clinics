@@ -25,7 +25,7 @@ const AddPatient = () => {
       const authUser = localStorage.getItem("authUser");
       const token = authUser ? JSON.parse(authUser).token : null; 
 
-      const res = await fetch("http://localhost:5000/doctor/addPatient", {
+      const res = await fetch("https://health-record-tracker-for-rural-clinics.onrender.com/doctor/addPatient", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

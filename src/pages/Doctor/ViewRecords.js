@@ -35,7 +35,7 @@ const ViewRecords = () => {
     const fetchPatient = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`http://localhost:5000/doctor/allPatient/${id}`, {
+            const res = await fetch(`https://health-record-tracker-for-rural-clinics.onrender.com/doctor/allPatient/${id}`, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,

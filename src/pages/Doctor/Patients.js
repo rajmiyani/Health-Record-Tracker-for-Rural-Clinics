@@ -15,7 +15,7 @@ const Patients = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const res = await fetch("http://localhost:5000/doctor/allPatient");
+        const res = await fetch("https://health-record-tracker-for-rural-clinics.onrender.com/doctor/allPatient");
         const data = await res.json();
         // Ensure array
         setPatients(Array.isArray(data) ? data : data.patients || []);

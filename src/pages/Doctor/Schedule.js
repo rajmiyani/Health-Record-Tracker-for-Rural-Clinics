@@ -25,7 +25,7 @@ const Schedule = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch(`http://localhost:5000/doctor/addAppointment/${id}`, {
+      const res = await fetch(`https://health-record-tracker-for-rural-clinics.onrender.com/doctor/addAppointment/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
