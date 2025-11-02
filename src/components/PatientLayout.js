@@ -55,6 +55,20 @@ const PatientLayout = ({ children }) => {
   const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
 
+  React.useEffect(() => {
+    const handleKey = (e) => {
+      if (e.shiftKey && e.key.toLowerCase() === "d") {
+        const link = document.getElementById("secret-doctor-login");
+        if (link) {
+          link.style.display =
+            link.style.display === "none" ? "block" : "none";
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
   return (
     <>
       {/* Header */}
@@ -123,6 +137,14 @@ const PatientLayout = ({ children }) => {
                 <Dropdown.Item as={Link} to="/patient/login">
                   Logout
                 </Dropdown.Item>
+                <Dropdown.Item
+                  as={Link}
+                  to="/doctor/login"
+                  id="secret-doctor-login"
+                  style={{ display: "none" }}
+                >
+                  Doctor Panel
+                </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </div>
@@ -170,8 +192,8 @@ const PatientLayout = ({ children }) => {
                       key={index}
                       to={item.link}
                       className={`fw-semibold ${location.pathname === item.link
-                          ? "text-white"
-                          : "text-dark"
+                        ? "text-white"
+                        : "text-dark"
                         }`}
                       style={
                         location.pathname === item.link

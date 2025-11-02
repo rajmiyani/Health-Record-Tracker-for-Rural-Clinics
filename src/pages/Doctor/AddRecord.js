@@ -42,7 +42,7 @@ const AddRecord = () => {
     try {
       const token = localStorage.getItem("authUser"); // adjust if token stored differently
       await axios.post(
-        "http://localhost:5000/doctor/addRecord",
+        "https://health-record-tracker-for-rural-clinics.onrender.com/doctor/addRecord",
         formData,
         {
           headers: {

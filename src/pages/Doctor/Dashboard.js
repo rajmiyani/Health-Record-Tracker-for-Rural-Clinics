@@ -20,7 +20,7 @@ export default function Dashboard() {
 
   const fetchDashboard = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/doctor/dashboard");
+      const { data } = await axios.get("https://health-record-tracker-for-rural-clinics.onrender.com/doctor/dashboard");
       setStats(data.stats);
       setRecentActivity(data.recentActivity);
       setAppointments(data.upcomingAppointments);

@@ -38,7 +38,7 @@ const DashboardLayout = ({ children }) => {
 
     const fetchTotalPatients = async () => {
       try {
-        const res = await fetch("http://localhost:5000/doctor/allPatient");
+        const res = await fetch("https://health-record-tracker-for-rural-clinics.onrender.com/doctor/allPatient");
         const data = await res.json();
         const patients = Array.isArray(data) ? data : data.patients || [];
         setTotalPatients(patients.length);
@@ -50,7 +50,7 @@ const DashboardLayout = ({ children }) => {
 
     const fetchTotalAppointments = async () => {
       try {
-        const res = await fetch("http://localhost:5000/patient/getAppointments");
+        const res = await fetch("https://health-record-tracker-for-rural-clinics.onrender.com/patient/getAppointments");
         const data = await res.json();
         const appointments = Array.isArray(data) ? data : [];
         setTotalAppointments(appointments.length);
@@ -75,7 +75,7 @@ const DashboardLayout = ({ children }) => {
 
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/doctor/notifications/${doctorId}`);
+        const res = await fetch(`https://health-record-tracker-for-rural-clinics.onrender.com/doctor/notifications/${doctorId}`);
         const data = await res.json();
         if (data.success && Array.isArray(data.notifications)) {
           setNotifications(data.notifications);

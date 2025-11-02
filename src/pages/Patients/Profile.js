@@ -38,7 +38,7 @@ const ProfilePage = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const fileInputRef = useRef(null);
 
-    const BASE_URL = "http://localhost:5000";
+    const BASE_URL = "https://health-record-tracker-for-rural-clinics.onrender.com/";
 
     // Normalize patient data -> fallback to "N/A"
     const normalizePatientData = (data) => {

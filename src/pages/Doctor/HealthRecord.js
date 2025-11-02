@@ -28,8 +28,8 @@ const HealthRecords = () => {
     const fetchData = async () => {
       try {
         const [recordsRes, patientsRes] = await Promise.all([
-          axios.get("http://localhost:5000/doctor/allRecords"),
-          axios.get("http://localhost:5000/doctor/allPatient"),
+          axios.get("https://health-record-tracker-for-rural-clinics.onrender.com/doctor/allRecords"),
+          axios.get("https://health-record-tracker-for-rural-clinics.onrender.com/doctor/allPatient"),
         ]);
 
         setRecords(recordsRes.data);
@@ -74,7 +74,7 @@ const HealthRecords = () => {
   const handleSaveChanges = async () => {
     try {
       await axios.put(
-        `http://localhost:5000/doctor/updateRecord/${selectedRecord._id}`,
+        `https://health-record-tracker-for-rural-clinics.onrender.com/doctor/updateRecord/${selectedRecord._id}`,
         {
           ...selectedRecord,
           patientId: selectedRecord.patient?._id || selectedRecord.patientId, // send correct ObjectId

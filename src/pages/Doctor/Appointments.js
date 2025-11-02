@@ -83,7 +83,7 @@ const DoctorAppointments = () => {
 
     try {
       await axios.put(
-        `http://localhost:5000/patient/updateAppointment/${selectedAppointment._id}`,
+        `https://health-record-tracker-for-rural-clinics.onrender.com/patient/updateAppointment/${selectedAppointment._id}`,
         {
           date: formData.date,
           time: formData.time,
