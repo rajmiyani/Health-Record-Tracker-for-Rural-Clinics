@@ -47,7 +47,7 @@ const Dashboard = () => {
             <section
                 className="hero-section d-flex align-items-center"
                 style={{
-                    backgroundImage: "url('/IMG/heroImg.jpg')",
+                    backgroundImage: "url('https://raw.githubusercontent.com/rajmiyani/HealthRecordTrackerForRuralClinics/main/public/IMG/heroImg.jpg')",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     minHeight: "90vh",
